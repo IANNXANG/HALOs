@@ -82,42 +82,42 @@ def worker_main(rank: int, world_size: int, config: DictConfig, tokenizer: AutoT
     trainer.save()
     
 
-@hydra.main(version_base=None, config_path="config", config_name="config")
+@hydra.main(version_base=None, config_path="config", config_name="config")  #使用 Hydra 库的装饰器
 def main(config: DictConfig):
     """Main entry point for training. Validates config, creates/initializes model(s), and kicks off worker process(es)."""
     # Resolve hydra references, e.g. so we don't re-compute the run directory
     OmegaConf.resolve(config)
 
-    missing_keys: Set[str] = OmegaConf.missing_keys(config)
+    missing_keys: Set[str] = OmegaConf.missing_keys(config)  #这段代码的作用是检查是否存在缺失的键
     if missing_keys:
         raise ValueError(f"Got missing keys in config:\n{missing_keys}")
 
     os.makedirs(config.local_run_dir, exist_ok=True)
     print("Making experiment directory", config.local_run_dir)
     
-    set_seed(config.seed)
+    set_seed(config.seed) #设置random模块、numpy库、torch库的随机种子
 
-    if config.eval_every % config.model.batch_size != 0:
+    if config.eval_every % config.model.batch_size != 0: #多少步进行一次评估能被批大小整除  20_000/32
         print('WARNING: eval_every must be divisible by batch_size')
         print('Setting eval_every to', config.eval_every - config.eval_every % config.model.batch_size)
         config.eval_every = config.eval_every - config.eval_every % config.model.batch_size
 
-    if config.use_fsdp and config.fsdp_port is None:
+    if config.use_fsdp and config.fsdp_port is None:  #设置默认分布式端口
         free_port = get_open_port()
         print('no FSDP port specified; using open port for FSDP:', free_port)
         config.fsdp_port = free_port
 
-    if config.saved_policy is None:
+    if config.saved_policy is None:  #设置默认的存储policy路径
         config.saved_policy = f"{config.local_run_dir}/LATEST/policy.pt"
 
-    print(OmegaConf.to_yaml(config))
+    print(OmegaConf.to_yaml(config))  #打印配置文件字符串
 
-    config_path = os.path.join(config.local_run_dir, 'config.yaml')
-    with open(config_path, 'w') as f:
+    config_path = os.path.join(config.local_run_dir, 'config.yaml')  #保存配置文件
+    with open(config_path, 'w') as f: #写入模式（'w'）打开一个文件，文件路径由变量 config_path 指定。with 语句确保在操作完成后文件被正确关闭
         OmegaConf.save(config, f)
 
     print('=' * 80)
-    print(f'Writing to {socket.gethostname()}:{config.local_run_dir}')
+    print(f'Writing to {socket.gethostname()}:{config.local_run_dir}')  #返回运行当前 Python 脚本的计算机的主机名。
     print('=' * 80)
     
     policy_kwargs = {'torch_dtype' : getattr(torch, config.model.policy_dtype)}
