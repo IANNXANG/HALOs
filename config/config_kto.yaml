@@ -1,0 +1,72 @@
+seed: 1
+exp_name: llama7b_kto
+datasets:
+- shp
+- hh
+- oasst
+mode: train
+debug: false
+use_fsdp: true
+fsdp_port: 34385
+wandb:
+  enabled: true
+  entity: null
+  project: archangel
+cache_dir: /home/jovyan/share/LLMAgent/zy/data
+local_run_dir: /home/jovyan/share/LLMAgent/zy/data/llama7b_kto
+do_first_eval: true
+minimum_log_interval_secs: 1.0
+intermediate_checkpoints: false
+
+
+trainer: BasicTrainer
+lr: 5.0e-07
+n_epochs: 1
+n_examples: null
+optimizer: RMSprop
+warmup_steps: 150
+eval_every: 20000
+n_samples: 128
+samples_dir: samples/
+n_eval_examples: 512
+saved_policy: /home/jovyan/share/LLMAgent/zy/data/llama7b_kto/LATEST/policy.pt
+top_p: 0.95
+human_prefix: '
+
+  <|user|>
+
+  '
+assistant_prefix: '
+
+  <|assistant|>
+
+  '
+human_suffix: ''
+assistant_suffix: ''
+frac_unique_desirable: 1.0
+frac_unique_undesirable: 1.0
+model:
+  name_or_path: huggyllama/llama-7b
+  tokenizer_name_or_path: null
+  load_from: llama7b_sft/LATEST/policy.pt
+  block_name: LlamaDecoderLayer
+  policy_dtype: bfloat16
+  fsdp_policy_mp: null
+  reference_dtype: bfloat16
+  max_grad_norm: 10.0
+  v_head_max_grad_norm: 0.1
+  max_length: 2048
+  max_prompt_length: 1024
+  activation_checkpointing: true
+  batch_size: 32
+  gradient_accumulation_steps: 1
+  eval_batch_size: 16
+  use_flash_attention: true
+loss:
+  name: kto
+  beta: 0.1
+  trainer: KTOTrainer
+  dataloader: UnpairedPreferenceDataLoader
+  use_reference_model: true
+  desirable_weight: 1.0
+  undesirable_weight: 1.0

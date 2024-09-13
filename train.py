@@ -120,20 +120,20 @@ def main(config: DictConfig):
     print(f'Writing to {socket.gethostname()}:{config.local_run_dir}')  #返回运行当前 Python 脚本的计算机的主机名。
     print('=' * 80)
     
-    policy_kwargs = {'torch_dtype' : getattr(torch, config.model.policy_dtype)}
-    reference_kwargs = {'torch_dtype' : getattr(torch, config.model.reference_dtype)}
+    policy_kwargs = {'torch_dtype' : getattr(torch, config.model.policy_dtype)}  #创建字典存考模型的参数
+    reference_kwargs = {'torch_dtype' : getattr(torch, config.model.reference_dtype)}  #bfloat16是一种浮点数数据类型
     
-    if not config.use_fsdp:
+    if not config.use_fsdp:  #默认设置balanced
         policy_kwargs['device_map'] = 'balanced'
         reference_kwargs['device_map'] = 'balanced'
 
-    print('building policy')
-    model_class = AutoModelForCausalLMWithValueHead if config.loss.name == 'ppo' else AutoModelForCausalLM
-    policy = model_class.from_pretrained(
+    print('building policy')  #构建policy
+    model_class = AutoModelForCausalLMWithValueHead if config.loss.name == 'ppo' else AutoModelForCausalLM  #确定要使用的类
+    policy = model_class.from_pretrained( #从预训练的模型中加载模型实例
         config.model.name_or_path, low_cpu_mem_usage=True, use_flash_attention_2=config.model.use_flash_attention, **policy_kwargs)
-    disable_dropout(policy)
+    disable_dropout(policy)  #禁用加载的模型实例
 
-    if config.loss.use_reference_model:
+    if config.loss.use_reference_model:  #是否需要参考模型的建立
         print('building reference model')
         reference_model = AutoModelForCausalLM.from_pretrained(
             config.model.name_or_path, low_cpu_mem_usage=True, use_flash_attention_2=config.model.use_flash_attention, **reference_kwargs)
@@ -141,7 +141,7 @@ def main(config: DictConfig):
     else:
         reference_model = None
 
-    if config.model.load_from is not None:
+    if config.model.load_from is not None:   #如果有存在的导入模型
         state_dict = torch.load(os.path.join(config.cache_dir, config.model.load_from), map_location='cpu')
         step, metrics = state_dict['step_idx'], state_dict['metrics']
         print(f'loading pre-trained weights at step {step} from {config.model.load_from} with metrics {json.dumps(metrics, indent=2)}')
@@ -180,8 +180,8 @@ def main(config: DictConfig):
 
     print(f"{num_added} special tokens added")
 
-    data_loader_class = getattr(dataloader, config.loss.dataloader)
-    data_iterator_kwargs = dict(
+    data_loader_class = getattr(dataloader, config.loss.dataloader)  #获取dataloader
+    data_iterator_kwargs = dict(   #迭代器参数
         max_length=config.model.max_length,
         max_prompt_length=config.model.max_prompt_length,
         human_prefix=config.human_prefix,
