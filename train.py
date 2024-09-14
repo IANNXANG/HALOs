@@ -159,9 +159,9 @@ def main(config: DictConfig):
         gc.collect()
         torch.cuda.empty_cache()
 
-        print('loaded pre-trained weights')
+        print('loaded pre-trained weights')  #导入成功
 
-    tokenizer_name_or_path = config.model.tokenizer_name_or_path or config.model.name_or_path
+    tokenizer_name_or_path = config.model.tokenizer_name_or_path or config.model.name_or_path   #设置分词器路径
     print(f'Loading tokenizer {tokenizer_name_or_path}')
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
     if tokenizer.pad_token_id is None:
@@ -180,7 +180,7 @@ def main(config: DictConfig):
 
     print(f"{num_added} special tokens added")
 
-    data_loader_class = getattr(dataloader, config.loss.dataloader)  #获取dataloader
+    data_loader_class = getattr(dataloader, config.loss.dataloader)  #获取dataloader的类型
     data_iterator_kwargs = dict(   #迭代器参数
         max_length=config.model.max_length,
         max_prompt_length=config.model.max_prompt_length,
@@ -188,9 +188,9 @@ def main(config: DictConfig):
         human_suffix=config.human_suffix,
         assistant_prefix=config.assistant_prefix,
         assistant_suffix=config.assistant_suffix,
-        seed=config.seed,
-        frac_unique_desirable=config.frac_unique_desirable,
-        frac_unique_undesirable=config.frac_unique_undesirable,
+        seed=config.seed,   #1
+        frac_unique_desirable=config.frac_unique_desirable,  #1
+        frac_unique_undesirable=config.frac_unique_undesirable,   #1
         # control tokens taken from Korbak et al.'s (2023) "Pretraining Models with Human Feedback"
         # SFTDataLoader will use them for sampling; ConditionalSFTDataLoader for training
         chosen_control_token=(config.loss.chosen_control_token if config.loss.name == "csft" else None),
@@ -200,18 +200,18 @@ def main(config: DictConfig):
         config.datasets, 
         tokenizer,
         split='train',
-        batch_size=config.model.batch_size,
-        n_epochs=config.n_epochs,
-        n_examples=config.n_examples, 
-        **data_iterator_kwargs
+        batch_size=config.model.batch_size,  #32
+        n_epochs=config.n_epochs,  #1
+        n_examples=config.n_examples,   #null
+        **data_iterator_kwargs   #迭代器参数
     )
     eval_iterator = data_loader_class(
         config.datasets, 
         tokenizer,
-        split='test',
-        batch_size=config.model.eval_batch_size,
-        n_examples=config.n_eval_examples, 
-        n_epochs=(1 if config.n_eval_examples is None else None),
+        split='test',  #验证
+        batch_size=config.model.eval_batch_size,  #验证bs 16
+        n_examples=config.n_eval_examples,  #512 评估的样本量
+        n_epochs=(1 if config.n_eval_examples is None else None),  #n_epochs和n_examples指定一个就够了
         **data_iterator_kwargs
     )
     
