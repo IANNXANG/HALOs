@@ -340,7 +340,7 @@ class BasicTrainer(object):
         rank0_print(f'Using {self.config.optimizer} optimizer with learning rate {self.config.lr}')  #打印正在使用的优化器和学习率
         self.optimizer = getattr(torch.optim, self.config.optimizer)(self.policy.parameters(), lr=self.config.lr)
         self.scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=lambda step: min(1.0, (step + 1) / (self.config.warmup_steps + 1)))
-#返回一个乘性因子，用于调整学习率
+        #返回一个乘性因子，用于调整学习率
 
 
         if self.reference_model is not None:  #如果有参考模型，将其设置为评估模式。
