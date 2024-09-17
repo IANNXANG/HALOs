@@ -1,0 +1,68 @@
+seed: 1
+exp_name: pythia1-4b_ipo
+datasets:
+- shp
+- hh
+- oasst
+mode: train
+debug: false
+use_fsdp: true
+fsdp_port: 33253
+wandb:
+  enabled: true
+  entity: null
+  project: archangel
+cache_dir: /home/jovyan/share/LLMAgent/zy/data
+local_run_dir: /home/jovyan/share/LLMAgent/zy/data/pythia1-4b_ipo
+do_first_eval: true
+minimum_log_interval_secs: 1.0
+intermediate_checkpoints: false
+trainer: BasicTrainer
+lr: 5.0e-07
+n_epochs: 1
+n_examples: null
+optimizer: RMSprop
+warmup_steps: 150
+eval_every: 20000
+n_samples: 128
+samples_dir: samples/
+n_eval_examples: 512
+saved_policy: /home/jovyan/share/LLMAgent/zy/data/pythia1-4b_ipo/LATEST/policy.pt
+top_p: 0.95
+human_prefix: '
+
+  <|user|>
+
+  '
+assistant_prefix: '
+
+  <|assistant|>
+
+  '
+human_suffix: ''
+assistant_suffix: ''
+frac_unique_desirable: 1.0
+frac_unique_undesirable: 1.0
+model:
+  name_or_path: EleutherAI/pythia-1.4b
+  tokenizer_name_or_path: null
+  load_from: pythia1-4b_sft/LATEST/policy.pt
+  block_name: GPTNeoXLayer
+  policy_dtype: bfloat16
+  fsdp_policy_mp: null
+  reference_dtype: bfloat16
+  max_grad_norm: 10.0
+  v_head_max_grad_norm: 0.1
+  max_length: 2048
+  max_prompt_length: 1024
+  activation_checkpointing: true
+  batch_size: 32
+  gradient_accumulation_steps: 1
+  eval_batch_size: 16
+  use_flash_attention: false
+loss:
+  name: ipo
+  beta: 0.1
+  trainer: IPOTrainer
+  dataloader: PairedPreferenceDataLoader
+  use_reference_model: true
