@@ -63,7 +63,7 @@ def worker_main(rank: int, world_size: int, config: DictConfig, tokenizer: AutoT
             name=config.exp_name,
         )
 
-    TrainerClass = getattr(trainers, config.loss.trainer)
+    TrainerClass = getattr(trainers, config.loss.trainer)  #KTOTrainer
     print(f'Creating trainer on process {rank} with world size {world_size}')
 
     trainer = TrainerClass(
@@ -180,7 +180,7 @@ def main(config: DictConfig):
 
     print(f"{num_added} special tokens added")
 
-    data_loader_class = getattr(dataloader, config.loss.dataloader)  #获取dataloader的类型
+    data_loader_class = getattr(dataloader, config.loss.dataloader)  #获取dataloader的类型 UnpairedPreferenceDataLoader
     data_iterator_kwargs = dict(   #迭代器参数
         max_length=config.model.max_length,
         max_prompt_length=config.model.max_prompt_length,

@@ -79,7 +79,7 @@ class BasicTrainer(object):
                  ):
         """A trainer for a language model, supporting either SFT, HALO, or offline PPO training.
         """
-        self.seed = config.seed
+        self.seed = config.seed #接受种子
         torch.manual_seed(self.seed)
         np.random.seed(self.seed)
         random.seed(self.seed)
@@ -95,11 +95,11 @@ class BasicTrainer(object):
         self.policy = policy
         self.policy_dtype = getattr(torch, config.model.policy_dtype)
         self.reference_model = reference_model
-        self.example_counter = 0
+        self.example_counter = 0 #重置计数
         self.batch_counter = 0
 
-        self.train_iterator = train_iterator
-        self.eval_iterator = eval_iterator
+        self.train_iterator = train_iterator #dataloader
+        self.eval_iterator = eval_iterator  #dataloader
         self.eval_batches = list(self.eval_iterator)
         rank0_print(f'Loaded {len(self.eval_batches)} eval batches of size {config.model.eval_batch_size}')
 
@@ -337,18 +337,20 @@ class BasicTrainer(object):
     def train(self):
         """Begin either SFT or HALO training, with periodic evaluation. This is subclassed when implementing PPO."""
 
-        rank0_print(f'Using {self.config.optimizer} optimizer with learning rate {self.config.lr}')
+        rank0_print(f'Using {self.config.optimizer} optimizer with learning rate {self.config.lr}')  #打印正在使用的优化器和学习率
         self.optimizer = getattr(torch.optim, self.config.optimizer)(self.policy.parameters(), lr=self.config.lr)
         self.scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=lambda step: min(1.0, (step + 1) / (self.config.warmup_steps + 1)))
+#返回一个乘性因子，用于调整学习率
 
-        if self.reference_model is not None:
+
+        if self.reference_model is not None:  #如果有参考模型，将其设置为评估模式。
             self.reference_model.eval()
 
         last_log = None
         gradients_accumulated = 0
         batch_metrics = defaultdict(list)
 
-        for batch in self.train_iterator:
+        for batch in self.train_iterator: #可迭代对象
             # EVALUATION
             if self.example_counter % self.config.eval_every == 0 and (self.example_counter > 0 or self.config.do_first_eval):
                 rank0_print(f'Running evaluation after {self.example_counter} train examples')
@@ -387,7 +389,7 @@ class BasicTrainer(object):
                 delete_dict(mean_eval_metrics)
 
             #### TRAINING
-            self.policy.train()
+            self.policy.train() #将模型设置为训练模式
 
             start_time = time.time()
             
@@ -419,6 +421,7 @@ class BasicTrainer(object):
             delete_dict(local_microbatch)
             delete_dict(metrics)
 
+            #日志记录和内存管理
             if gradients_accumulated == 0 and (last_log is None or time.time() - last_log > self.config.minimum_log_interval_secs):
                 mean_train_metrics = {}
                 for k, v in batch_metrics.items():
@@ -658,7 +661,7 @@ class PairedPreferenceTrainer(BasicTrainer):
 
         if self.reference_model is None:
             policy_chosen_logps, policy_rejected_logps = self.forward(self.policy, batch)
-            losses, chosen_rewards, rejected_rewards = self.loss(policy_chosen_logps, policy_rejected_logps)
+            losses, chosen_rewards, rejected_rewards = self.loss(policy_chosen_logps, policy_rejected_logps) #计算loss
         else:
             policy_chosen_logps, policy_rejected_logps = self.forward(self.policy, batch)
             with torch.no_grad():
@@ -668,6 +671,7 @@ class PairedPreferenceTrainer(BasicTrainer):
         # accuracy calculated on unpaired examples (for apples-to-apples comparison with UnpairedPreferenceTrainer)
         reward_accuracies = (chosen_rewards > rejected_rewards.flip(dims=[0])).float()
 
+        #分布式拼接
         chosen_rewards = all_gather_if_needed(chosen_rewards, self.rank, self.world_size)
         rejected_rewards = all_gather_if_needed(rejected_rewards, self.rank, self.world_size)
         reward_accuracies = all_gather_if_needed(reward_accuracies, self.rank, self.world_size)
@@ -1407,3 +1411,23 @@ class PPOTrainer(BasicTrainer):
                 scheduler_state_dict = self.scheduler.state_dict()
                 self.write_state_dict(self.example_counter, scheduler_state_dict, metrics, 'scheduler.pt', output_dir)
                 del scheduler_state_dict
+
+
+class IPOTrainer(PairedPreferenceTrainer):
+    def loss(self,
+             policy_chosen_logps: torch.FloatTensor,
+             policy_rejected_logps: torch.FloatTensor,
+             reference_chosen_logps: torch.FloatTensor,
+             reference_rejected_logps: torch.FloatTensor) -> Tuple[
+        torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+        """Compute the DPO loss for a batch of policy and reference model log probabilities."""
+        pi_logratios = policy_chosen_logps - policy_rejected_logps
+        ref_logratios = reference_chosen_logps - reference_rejected_logps
+        logits = pi_logratios - ref_logratios
+
+
+        losses = -(logits - 1/(2 * self.config.loss.beta)) ** 2
+        chosen_rewards = self.config.loss.beta * (policy_chosen_logps - reference_chosen_logps).detach()
+        rejected_rewards = self.config.loss.beta * (policy_rejected_logps - reference_rejected_logps).detach()
+
+        return losses, chosen_rewards, rejected_rewards

@@ -800,8 +800,8 @@ class UnpairedPreferenceDataLoader(DataLoader):
 
     def __iter__(self):
         prompts = list(self.full_data.keys()) 
-        random.shuffle(prompts) # otherwise, will be frontloaded with prompts in same domain
-        flat_data = self.get_flat_data(prompts)
+        random.shuffle(prompts) # otherwise, will be frontloaded with prompts in same domain随机打乱提示列表
+        flat_data = self.get_flat_data(prompts) #得到一个可以用于后续迭代的数据集合
 
         epoch_idx = 0
         example_idx = 0
@@ -809,14 +809,14 @@ class UnpairedPreferenceDataLoader(DataLoader):
 
         while True:
             if done: break
-            random.shuffle(flat_data)   # so generations in the same preference are not in the same batch
-            batch = []
-            example_queue = []
+            random.shuffle(flat_data)   # so generations in the same preference are not in the same batch 确保在同一批次中的生成数据不会集中在相同的偏好中
+            batch = [] #用于存储当前批次的数据。
+            example_queue = [] #作为一个临时队列，用于收集单个示例，直到达到批次大小。
 
-            for example, generation, status in flat_data:
+            for example, generation, status in flat_data: #列表装了三元组 原始示例、生成内容和状态
                 batch_element = self.tokenize_batch_element(example.prompt, generation, example.truncation_mode, prefix='target')
-                batch_element['status'] = status 
-                batch_element['truncation_mode'] = example.truncation_mode
+                batch_element['status'] = status  #状态
+                batch_element['truncation_mode'] = example.truncation_mode #截断模式信息
                 example_queue.append(batch_element)
                 
                 if len(example_queue) >= self.batch_size:
@@ -840,13 +840,13 @@ class UnpairedPreferenceDataLoader(DataLoader):
                     yield self.collate(batch)
                     batch = []
 
-                    if self.n_examples is not None and example_idx >= self.n_examples:
+                    if self.n_examples is not None and example_idx >= self.n_examples:  #example判断
                         rank0_print(f'Finished generating {example_idx} examples on {self.split} split')
                         done = True
                         break
 
             epoch_idx += 1
-            if self.n_epochs is not None and epoch_idx >= self.n_epochs:
+            if self.n_epochs is not None and epoch_idx >= self.n_epochs:  #epock判断
                 done = True
                 break
 
