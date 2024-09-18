@@ -1431,3 +1431,25 @@ class IPOTrainer(PairedPreferenceTrainer):
         rejected_rewards = self.config.loss.beta * (policy_rejected_logps - reference_rejected_logps).detach()
 
         return losses, chosen_rewards, rejected_rewards
+
+
+class DPOPTrainer(PairedPreferenceTrainer):
+    def loss(self,
+             policy_chosen_logps: torch.FloatTensor,
+             policy_rejected_logps: torch.FloatTensor,
+             reference_chosen_logps: torch.FloatTensor,
+             reference_rejected_logps: torch.FloatTensor) -> Tuple[
+        torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+        """Compute the DPO loss for a batch of policy and reference model log probabilities."""
+        pi_logratios = policy_chosen_logps - policy_rejected_logps
+        ref_logratios = reference_chosen_logps - reference_rejected_logps
+        logits = pi_logratios - ref_logratios
+
+        lambda_max = self.config.loss.lamda * torch.clamp(reference_chosen_logps - policy_chosen_logps, min=0)
+
+        losses = -F.logsigmoid(self.config.loss.beta * (logits - lambda_max))
+
+        chosen_rewards = self.config.loss.beta * (policy_chosen_logps - reference_chosen_logps).detach()
+        rejected_rewards = self.config.loss.beta * (policy_rejected_logps - reference_rejected_logps).detach()
+
+        return losses, chosen_rewards, rejected_rewards
