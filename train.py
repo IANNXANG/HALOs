@@ -20,7 +20,6 @@ where
 
 Remember to allocate enough RAM before running this (you need aroundd 800 GB for Llama-13B).
 """
-import pdb
 
 import torch
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -52,11 +51,11 @@ def worker_main(rank: int, world_size: int, config: DictConfig, tokenizer: AutoT
         init_distributed(rank, world_size, port=config.fsdp_port)
     
     if config.debug:
-        pdb.set_trace()
+        breakpoint()
         wandb.init = lambda *args, **kwargs: None
-        pdb.set_trace()
+        breakpoint()
         wandb.log = lambda *args, **kwargs: None
-        pdb.set_trace()
+        breakpoint()
 
     if rank == 0 and config.wandb.enabled:
         os.environ['WANDB_CACHE_DIR'] = config.cache_dir
