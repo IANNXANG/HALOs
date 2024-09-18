@@ -7,7 +7,7 @@ datasets:
 mode: train
 debug: false
 use_fsdp: true
-fsdp_port: 43351
+fsdp_port: 39323
 wandb:
   enabled: true
   entity: null
@@ -56,7 +56,7 @@ model:
   max_length: 2048
   max_prompt_length: 1024
   activation_checkpointing: true
-  batch_size: 8
+  batch_size: 32
   gradient_accumulation_steps: 1
   eval_batch_size: 16
   use_flash_attention: false
