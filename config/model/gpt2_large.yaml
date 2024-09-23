@@ -1,0 +1,6 @@
+defaults:
+  - base_model
+
+name_or_path: gpt2-large
+block_name: GPT2Block
+use_flash_attention: true
