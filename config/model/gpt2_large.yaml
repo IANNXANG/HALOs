@@ -15,3 +15,8 @@ max_length: 512
 max_prompt_length: 256
 
 gradient_accumulation_steps: 2
+
+
+policy_dtype: float32
+fsdp_policy_mp: bfloat16
+reference_dtype: float16
