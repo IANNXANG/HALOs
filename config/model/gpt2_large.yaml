@@ -4,3 +4,4 @@ defaults:
 name_or_path: openai-community/gpt2-large
 block_name: GPT2Block
 use_flash_attention: false
+batch_size: 4
