@@ -1,0 +1,47 @@
+seed: 0
+exp_name: imdb_tdpo2_alpha0.7_imdb
+batch_size: 64
+eval_batch_size: 32
+debug: false
+fsdp_port: 12355
+datasets:
+- imdb
+wandb:
+  enabled: true
+  entity: null
+  project: direct-preference-optimization
+local_dirs:
+- /scr-ssd
+- /scr
+- /pubshare/fwk/dpo_cache
+sample_during_eval: false
+do_first_eval: true
+local_run_dir: /pubshare/fwk/dpo_cache/jovyan/imdb_tdpo2_alpha0.7_imdb_2024-09-24_03-38-58_900495
+lr: 5.0e-07
+gradient_accumulation_steps: 2
+max_grad_norm: 10.0
+max_length: 512
+max_prompt_length: 256
+n_epochs: 1
+n_examples: null
+n_eval_examples: 256
+trainer: BasicTrainer
+optimizer: RMSprop
+warmup_steps: 150
+activation_checkpointing: false
+eval_every: 19968
+minimum_log_interval_secs: 1.0
+model:
+  name_or_path: gpt2-large
+  tokenizer_name_or_path: null
+  archive: null
+  block_name: GPT2Block
+  policy_dtype: float32
+  fsdp_policy_mp: bfloat16
+  reference_dtype: float16
+loss:
+  name: tdpo
+  if_tdpo2: false
+  alpha: 0.7
+  beta: 0.1
+  reference_free: false
