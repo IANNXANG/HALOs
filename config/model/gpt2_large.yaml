@@ -4,3 +4,7 @@ defaults:
 name_or_path: gpt2-large
 block_name: GPT2Block
 use_flash_attention: true
+
+policy_dtype: float32
+fsdp_policy_mp: null
+reference_dtype: float16
