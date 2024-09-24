@@ -53,9 +53,7 @@ def worker_main(rank: int, world_size: int, config: DictConfig, tokenizer: AutoT
     if config.debug:
         breakpoint()
         wandb.init = lambda *args, **kwargs: None
-        breakpoint()
         wandb.log = lambda *args, **kwargs: None
-        breakpoint()
 
     if rank == 0 and config.wandb.enabled:
         os.environ['WANDB_CACHE_DIR'] = config.cache_dir
