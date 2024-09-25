@@ -1,17 +1,17 @@
 seed: 1
-exp_name: gpt2_large_kto
+exp_name: gpt2_large_dpo
 datasets:
 - hh
 mode: train
 debug: false
 use_fsdp: true
-fsdp_port: 41417
+fsdp_port: 56685
 wandb:
   enabled: true
   entity: null
   project: archangel
 cache_dir: /home/jovyan/share/LLMAgent/zy/data
-local_run_dir: /home/jovyan/share/LLMAgent/zy/data/gpt2_large_kto
+local_run_dir: /home/jovyan/share/LLMAgent/zy/data/gpt2_large_dpo
 do_first_eval: true
 minimum_log_interval_secs: 1.0
 intermediate_checkpoints: false
@@ -21,11 +21,11 @@ n_epochs: 1
 n_examples: null
 optimizer: RMSprop
 warmup_steps: 150
-eval_every: 20000
+eval_every: 19968
 n_samples: 128
 samples_dir: samples/
 n_eval_examples: 512
-saved_policy: /home/jovyan/share/LLMAgent/zy/data/gpt2_large_kto/LATEST/policy.pt
+saved_policy: /home/jovyan/share/LLMAgent/zy/data/gpt2_large_dpo/LATEST/policy.pt
 top_p: 0.95
 human_prefix: '
 
@@ -44,25 +44,23 @@ frac_unique_undesirable: 1.0
 model:
   name_or_path: openai-community/gpt2-large
   tokenizer_name_or_path: null
-  load_from: null
+  load_from: gpt2_large_sft/LATEST/policy.pt
   block_name: GPT2Block
-  policy_dtype: bfloat16
-  fsdp_policy_mp: null
-  reference_dtype: bfloat16
+  policy_dtype: float32
+  fsdp_policy_mp: bfloat16
+  reference_dtype: float16
   max_grad_norm: 10.0
   v_head_max_grad_norm: 0.1
   max_length: 512
   max_prompt_length: 256
   activation_checkpointing: true
-  batch_size: 4
-  gradient_accumulation_steps: 1
-  eval_batch_size: 16
+  batch_size: 64
+  gradient_accumulation_steps: 2
+  eval_batch_size: 32
   use_flash_attention: false
 loss:
-  name: kto
+  name: dpo
   beta: 0.1
-  trainer: KTOTrainer
-  dataloader: UnpairedPreferenceDataLoader
+  trainer: DPOTrainer
+  dataloader: PairedPreferenceDataLoader
   use_reference_model: true
-  desirable_weight: 1.0
-  undesirable_weight: 1.0
