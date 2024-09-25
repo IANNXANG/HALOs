@@ -5,14 +5,14 @@ name_or_path: openai-community/gpt2-large
 block_name: GPT2Block
 use_flash_attention: false
 
-batch_size: 4
-#eval_batch_size: 16
+batch_size: 64
+eval_batch_size: 32
 
 
 # the maximum allowed length for an input (prompt + response)
-#max_length: 512
+max_length: 512
 # the maximum allowed length for a prompt
-#max_prompt_length: 256
+max_prompt_length: 256
 
 gradient_accumulation_steps: 1
 
