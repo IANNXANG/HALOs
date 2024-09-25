@@ -1421,13 +1421,13 @@ class IPOTrainer(PairedPreferenceTrainer):
              reference_chosen_logps: torch.FloatTensor,
              reference_rejected_logps: torch.FloatTensor) -> Tuple[
         torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
-        """Compute the DPO loss for a batch of policy and reference model log probabilities."""
+        """Compute the IPO loss for a batch of policy and reference model log probabilities."""
         pi_logratios = policy_chosen_logps - policy_rejected_logps
         ref_logratios = reference_chosen_logps - reference_rejected_logps
         logits = pi_logratios - ref_logratios
 
 
-        losses = (logits - 1/(2 * self.config.loss.beta)) ** 2 #添加IPO正则项
+        losses = -(logits - 1/(2 * self.config.loss.beta)) ** 2 #添加IPO正则项
         chosen_rewards = self.config.loss.beta * (policy_chosen_logps - reference_chosen_logps).detach()
         rejected_rewards = self.config.loss.beta * (policy_rejected_logps - reference_rejected_logps).detach()
 
