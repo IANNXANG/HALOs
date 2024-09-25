@@ -1427,7 +1427,7 @@ class IPOTrainer(PairedPreferenceTrainer):
         logits = pi_logratios - ref_logratios
 
 
-        losses = -(logits - 1/(2 * self.config.loss.beta)) ** 2 #添加IPO正则项
+        losses = (logits - 1/(2 * self.config.loss.beta)) ** 2 #添加IPO正则项
         chosen_rewards = self.config.loss.beta * (policy_chosen_logps - reference_chosen_logps).detach()
         rejected_rewards = self.config.loss.beta * (policy_rejected_logps - reference_rejected_logps).detach()
 
