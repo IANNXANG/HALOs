@@ -10,9 +10,9 @@ batch_size: 4
 
 
 # the maximum allowed length for an input (prompt + response)
-max_length: 512
+#max_length: 512
 # the maximum allowed length for a prompt
-max_prompt_length: 256
+#max_prompt_length: 256
 
 gradient_accumulation_steps: 1
 
