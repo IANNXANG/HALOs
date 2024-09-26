@@ -393,7 +393,7 @@ def get_imdb(split: str, human_prefix: str, human_suffix: str, assistant_prefix:
 
     rank0_print(f'Loading IMDB RLHF dataset ({split} split) from Huggingface...')
     dataset = datasets.load_dataset("csv", data_files="misc/imdb_rlhf_pairs.csv")['train']
-    data = Dataset('IMDB')
+    data = Dataset('imdb')
 
 
 
