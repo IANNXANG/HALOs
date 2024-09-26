@@ -395,14 +395,12 @@ def get_imdb(split: str, human_prefix: str, human_suffix: str, assistant_prefix:
     dataset = datasets.load_dataset("csv", data_files="misc/imdb_rlhf_pairs.csv", split=split)
     data = Dataset('IMDB')
 
-    def split_prompt_and_responses(ex):
-        prompt = extract_anthropic_prompt(ex['chosen'])
-        chosen_response = ex['chosen'][len(prompt):]
-        rejected_response = ex['rejected'][len(prompt):]
-        return prompt, chosen_response, rejected_response
+
 
     for row in dataset:
-        prompt, chosen, rejected = split_prompt_and_responses(row)
+        prompt = row['Prompt']
+        chosen = row['positive_response'][len(prompt[:-1]):]
+        rejected = row['negative_response'][len(prompt[:-1]):]
         # strip trailing spaces to avoid tokenization issues
         chunks = []
         # turn doesn't always start with \n\n so watch out
@@ -433,12 +431,7 @@ def get_imdb(split: str, human_prefix: str, human_suffix: str, assistant_prefix:
 
     return data
 
-def extract_anthropic_prompt(prompt_and_response):
-    """Extract the anthropic prompt from a prompt and response pair."""
-    search_term = '\n\nAssistant:'
-    search_term_idx = prompt_and_response.rfind(search_term)
-    assert search_term_idx != -1, f"Prompt and response does not contain '{search_term}'"
-    return prompt_and_response[:search_term_idx + len(search_term)]
+
 
 
 class DataLoader:
