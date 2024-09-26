@@ -391,7 +391,7 @@ def get_imdb(split: str, human_prefix: str, human_suffix: str, assistant_prefix:
        For this dataset, the sft_target is just the chosen response.
     """
 
-    rank0_print(f'Loading IMDB RLHF dataset ({split} split) from Huggingface...')
+    rank0_print(f'Loading IMDB RLHF dataset ({split} split) from CSV...')
     dataset = datasets.load_dataset("csv", data_files="misc/imdb_rlhf_pairs.csv")['train']
     data = Dataset('imdb')
 
