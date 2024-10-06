@@ -1529,7 +1529,7 @@ class TDPOTrainer(BasicTrainer):
 
         return losses.mean(), metrics
 
-    def loss(self, chosen_logps_margin: torch.FloatTensor, rejected_logps_margin: torch.FloatTensor, chosen_position_kl: torch.FloatTensor, rejected_position_kl: torch.FloatTensor, beta: float, alpha: float = 0.5, if_tdpo2: bool = True) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+    def loss(self, chosen_logps_margin: torch.FloatTensor, rejected_logps_margin: torch.FloatTensor, chosen_position_kl: torch.FloatTensor, rejected_position_kl: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
         """Compute the TDPO loss for a batch of policy and reference model log probabilities.
 
         Args:
@@ -1552,15 +1552,15 @@ class TDPOTrainer(BasicTrainer):
 
         chosen_rejected_logps_margin = chosen_logps_margin - rejected_logps_margin
 
-        if not if_tdpo2:
+        if not self.config.loss.if_tdpo2:
             logits = chosen_rejected_logps_margin - (rejected_position_kl - chosen_position_kl)  # tdpo1
         else:
-            logits = chosen_rejected_logps_margin - alpha * (
+            logits = chosen_rejected_logps_margin - self.config.loss.alpha * (
                         rejected_position_kl - chosen_position_kl.detach())  # tdpo2
-        losses = -F.logsigmoid(beta * logits)
+        losses = -F.logsigmoid(self.config.loss.beta * logits)
 
-        chosen_rewards = beta * chosen_values.detach()
-        rejected_rewards = beta * rejected_values.detach()
+        chosen_rewards = self.config.loss.beta * chosen_values.detach()
+        rejected_rewards = self.config.loss.beta * rejected_values.detach()
 
         return losses, chosen_rewards, rejected_rewards
 
