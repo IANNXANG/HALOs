@@ -1485,11 +1485,11 @@ class TDPOTrainer(BasicTrainer):
         return concatenated_batch
 
 
-    def get_batch_metrics(self, batch: Dict[str, Union[List, torch.LongTensor]], loss_config: DictConfig, train=True):
+    def get_batch_metrics(self, batch: Dict[str, Union[List, torch.LongTensor]], loss_config: DictConfig, mode: str=None):
         """Compute theor TDPO loss and other metrics for the given batch of inputs."""
 
         metrics = {}
-        train_test = 'train' if train else 'eval'
+        train_test = mode
 
         if loss_config.name == 'tdpo':
             chosen_logps_margin, rejected_logps_margin, chosen_position_kl, rejected_position_kl, policy_chosen_logps, policy_rejected_logps\
