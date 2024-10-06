@@ -1529,11 +1529,7 @@ class TDPOTrainer(BasicTrainer):
 
         return losses.mean(), metrics
 
-    def loss(self,chosen_logps_margin: torch.FloatTensor,
-                  rejected_logps_margin: torch.FloatTensor,
-                  chosen_position_kl: torch.FloatTensor,
-                  rejected_position_kl: torch.FloatTensor,
-                  beta: float, alpha: float = 0.5, if_tdpo2: bool = True) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
+    def loss(self, chosen_logps_margin: torch.FloatTensor, rejected_logps_margin: torch.FloatTensor, chosen_position_kl: torch.FloatTensor, rejected_position_kl: torch.FloatTensor, beta: float, alpha: float = 0.5, if_tdpo2: bool = True) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
         """Compute the TDPO loss for a batch of policy and reference model log probabilities.
 
         Args:
