@@ -6,7 +6,7 @@ beta: 0.1
 
 lamda: 5 #dpop的参数lamda我们测试了 λ ∈ {5, 50, 500}，发现 MetaMath和 ARC 上的性能相对不受 λ 的选择影响。
 
-trainer: DPOTrainer
+trainer: DPOPTrainer
 
 dataloader: PairedPreferenceDataLoader
 
