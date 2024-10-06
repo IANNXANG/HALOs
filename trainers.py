@@ -1485,39 +1485,39 @@ class TDPOTrainer(BasicTrainer):
         return concatenated_batch
 
 
-    def get_batch_metrics(self, batch: Dict[str, Union[List, torch.LongTensor]], loss_config: DictConfig, mode: str=None):
+    def get_batch_metrics(self, batch: Dict[str, Union[List, torch.LongTensor]], mode: str=None):
         """Compute theor TDPO loss and other metrics for the given batch of inputs."""
 
         metrics = {}
         train_test = mode
 
-        if loss_config.name == 'tdpo':
-            chosen_logps_margin, rejected_logps_margin, chosen_position_kl, rejected_position_kl, policy_chosen_logps, policy_rejected_logps\
-                = self.tdpo_concatenated_forward(self.policy, self.reference_model, batch)
-            losses, chosen_rewards, rejected_rewards = self.loss(chosen_logps_margin, rejected_logps_margin,
-                                                                 chosen_position_kl, rejected_position_kl,
-                                                                 beta=loss_config.beta, alpha=loss_config.alpha, if_tdpo2=loss_config.if_tdpo2)
 
-            reward_accuracies = (chosen_rewards > rejected_rewards).float()
+        chosen_logps_margin, rejected_logps_margin, chosen_position_kl, rejected_position_kl, policy_chosen_logps, policy_rejected_logps\
+            = self.tdpo_concatenated_forward(self.policy, self.reference_model, batch)
+        losses, chosen_rewards, rejected_rewards = self.loss(chosen_logps_margin, rejected_logps_margin,
+                                                             chosen_position_kl, rejected_position_kl,
+                                                             beta=loss_config.beta, alpha=loss_config.alpha, if_tdpo2=loss_config.if_tdpo2)
 
-            chosen_rewards = all_gather_if_needed(chosen_rewards, self.rank, self.world_size)
-            rejected_rewards = all_gather_if_needed(rejected_rewards, self.rank, self.world_size)
-            reward_accuracies = all_gather_if_needed(reward_accuracies, self.rank, self.world_size)
+        reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
-            metrics[f'rewards_{train_test}/chosen'] = chosen_rewards.cpu().numpy().tolist()
-            metrics[f'rewards_{train_test}/rejected'] = rejected_rewards.cpu().numpy().tolist()
-            metrics[f'rewards_{train_test}/accuracies'] = reward_accuracies.cpu().numpy().tolist()
-            metrics[f'rewards_{train_test}/margins'] = (chosen_rewards - rejected_rewards).cpu().numpy().tolist()
+        chosen_rewards = all_gather_if_needed(chosen_rewards, self.rank, self.world_size)
+        rejected_rewards = all_gather_if_needed(rejected_rewards, self.rank, self.world_size)
+        reward_accuracies = all_gather_if_needed(reward_accuracies, self.rank, self.world_size)
 
-            all_device_chosen_position_kl = all_gather_if_needed(chosen_position_kl.detach(), self.rank, self.world_size)
-            all_device_rejected_position_kl = all_gather_if_needed(rejected_position_kl.detach(), self.rank, self.world_size)
+        metrics[f'rewards_{train_test}/chosen'] = chosen_rewards.cpu().numpy().tolist()
+        metrics[f'rewards_{train_test}/rejected'] = rejected_rewards.cpu().numpy().tolist()
+        metrics[f'rewards_{train_test}/accuracies'] = reward_accuracies.cpu().numpy().tolist()
+        metrics[f'rewards_{train_test}/margins'] = (chosen_rewards - rejected_rewards).cpu().numpy().tolist()
 
-            metrics[f'kl_{train_test}/chosen'] = all_device_chosen_position_kl.cpu().numpy().tolist()
-            metrics[f'kl_{train_test}/rejected'] = all_device_rejected_position_kl.cpu().numpy().tolist()
-            metrics[f'kl_{train_test}/margin'] = (all_device_chosen_position_kl - all_device_rejected_position_kl).cpu().numpy().tolist()
+        all_device_chosen_position_kl = all_gather_if_needed(chosen_position_kl.detach(), self.rank, self.world_size)
+        all_device_rejected_position_kl = all_gather_if_needed(rejected_position_kl.detach(), self.rank, self.world_size)
 
-            policy_rejected_logps = all_gather_if_needed(policy_rejected_logps.detach(), self.rank, self.world_size)
-            metrics[f'logps_{train_test}/rejected'] = policy_rejected_logps.cpu().numpy().tolist()
+        metrics[f'kl_{train_test}/chosen'] = all_device_chosen_position_kl.cpu().numpy().tolist()
+        metrics[f'kl_{train_test}/rejected'] = all_device_rejected_position_kl.cpu().numpy().tolist()
+        metrics[f'kl_{train_test}/margin'] = (all_device_chosen_position_kl - all_device_rejected_position_kl).cpu().numpy().tolist()
+
+        policy_rejected_logps = all_gather_if_needed(policy_rejected_logps.detach(), self.rank, self.world_size)
+        metrics[f'logps_{train_test}/rejected'] = policy_rejected_logps.cpu().numpy().tolist()
 
 
         policy_chosen_logps = all_gather_if_needed(policy_chosen_logps.detach(), self.rank, self.world_size)
