@@ -1529,7 +1529,7 @@ class TDPOTrainer(BasicTrainer):
 
         return losses.mean(), metrics
 
-    def loss(chosen_logps_margin: torch.FloatTensor,
+    def loss(self,chosen_logps_margin: torch.FloatTensor,
                   rejected_logps_margin: torch.FloatTensor,
                   chosen_position_kl: torch.FloatTensor,
                   rejected_position_kl: torch.FloatTensor,
@@ -1568,7 +1568,7 @@ class TDPOTrainer(BasicTrainer):
 
         return losses, chosen_rewards, rejected_rewards
 
-    def tdpo_get_batch_logps(logits: torch.FloatTensor, reference_logits: torch.FloatTensor, labels: torch.LongTensor,
+    def tdpo_get_batch_logps(self,logits: torch.FloatTensor, reference_logits: torch.FloatTensor, labels: torch.LongTensor,
                              average_log_prob: bool = False) -> object:
         """Compute the kl divergence/log probabilities of the given labels under the given logits.
 
