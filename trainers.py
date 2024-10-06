@@ -1496,7 +1496,7 @@ class TDPOTrainer(BasicTrainer):
             = self.tdpo_concatenated_forward(self.policy, self.reference_model, batch)
         losses, chosen_rewards, rejected_rewards = self.loss(chosen_logps_margin, rejected_logps_margin,
                                                              chosen_position_kl, rejected_position_kl,
-                                                             beta=loss_config.beta, alpha=loss_config.alpha, if_tdpo2=loss_config.if_tdpo2)
+                                                             beta=self.config.loss.beta, alpha=self.config.loss.alpha, if_tdpo2=self.config.loss.f_tdpo2)
 
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
@@ -1623,7 +1623,7 @@ class TDPOTrainer(BasicTrainer):
             reference_all_logits = reference_model(concatenated_batch['concatenated_input_ids'],
                                                    attention_mask=concatenated_batch[
                                                        'concatenated_attention_mask']).logits.to(torch.float32)
-        all_logps_margin, all_position_kl, all_logps = self.tdpo_get_batch_logps(all_logits, reference_all_logits, concatenated_batch['concatenated_labels'], average_log_prob=False)
+        all_logps_margin, all_position_kl, all_logps = self.tdpo_get_batch_logps(all_logits, reference_all_logits, concatenated_batch['concatenated_labels'])
 
         chosen_logps_margin = all_logps_margin[:batch['chosen_input_ids'].shape[0]]
         rejected_logps_margin = all_logps_margin[batch['chosen_input_ids'].shape[0]:]
