@@ -9,3 +9,6 @@ trainer: TDPOTrainer
 dataloader: PairedPreferenceDataLoader
 
 use_reference_model: true
+
+alpha: 0.5
+if_tdpo2: false
