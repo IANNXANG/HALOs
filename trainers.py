@@ -91,6 +91,7 @@ class BasicTrainer(object):
         self.run_dir = config.local_run_dir
         self.fsdp = fsdp
 
+
         self.tokenizer = tokenizer
         self.policy = policy
         self.policy_dtype = getattr(torch, config.model.policy_dtype)
@@ -1567,7 +1568,8 @@ class TDPOTrainer(BasicTrainer):
 
         return losses, chosen_rewards, rejected_rewards
 
-    def tdpo_get_batch_logps(logits: torch.FloatTensor, reference_logits: torch.FloatTensor, labels: torch.LongTensor,average_log_prob: bool = False):
+    def tdpo_get_batch_logps(logits: torch.FloatTensor, reference_logits: torch.FloatTensor, labels: torch.LongTensor,
+                             average_log_prob: bool = False) -> object:
         """Compute the kl divergence/log probabilities of the given labels under the given logits.
 
         Args:
@@ -1611,7 +1613,7 @@ class TDPOTrainer(BasicTrainer):
                 (per_position_kl * loss_mask).sum(-1), \
                 (per_token_logps * loss_mask).sum(-1)
 
-    def tdpo_concatenated_forward(self, model: nn.Module, reference_model: nn.Module,batch: Dict[str, Union[List, torch.LongTensor]]):
+    def tdpo_concatenated_forward(self, model: nn.Module, reference_model: nn.Module,batch: Dict[str, Union[List, torch.LongTensor]], average_log_prob=False):
         """Run the policy model and the reference model on the given batch of inputs, concatenating the chosen and rejected inputs together.
 
            We do this to avoid doing two forward passes, because it's faster for FSDP.
@@ -1623,7 +1625,7 @@ class TDPOTrainer(BasicTrainer):
             reference_all_logits = reference_model(concatenated_batch['concatenated_input_ids'],
                                                    attention_mask=concatenated_batch[
                                                        'concatenated_attention_mask']).logits.to(torch.float32)
-        all_logps_margin, all_position_kl, all_logps = self.tdpo_get_batch_logps(all_logits, reference_all_logits, concatenated_batch['concatenated_labels'])
+        all_logps_margin, all_position_kl, all_logps = self.tdpo_get_batch_logps(all_logits, reference_all_logits, concatenated_batch['concatenated_labels'], average_log_prob=average_log_prob)
 
         chosen_logps_margin = all_logps_margin[:batch['chosen_input_ids'].shape[0]]
         rejected_logps_margin = all_logps_margin[batch['chosen_input_ids'].shape[0]:]
