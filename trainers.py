@@ -791,8 +791,8 @@ class ORPOTrainer(PairedPreferenceTrainer):
 
         del chosen_rewards, rejected_rewards, reward_accuracies, policy_chosen_logps, policy_rejected_logps, all_devices_losses
         #以下代码有报错，先注释一下
-        # if self.reference_model:
-        #     del reference_chosen_logps, reference_rejected_logps
+        if self.reference_model:
+            del reference_chosen_logps, reference_rejected_logps
 
         return losses.mean(), metrics
 
