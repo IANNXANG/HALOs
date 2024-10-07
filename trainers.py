@@ -790,7 +790,7 @@ class ORPOTrainer(PairedPreferenceTrainer):
         metrics[f'loss/{mode}'] = all_devices_losses.float().cpu().numpy().tolist()
 
         del chosen_rewards, rejected_rewards, reward_accuracies, policy_chosen_logps, policy_rejected_logps, all_devices_losses
-        #以下代码有报错，先注释一下
+        #以下代码有报错，先注释一下啊
         if self.reference_model:
             del reference_chosen_logps, reference_rejected_logps
 
