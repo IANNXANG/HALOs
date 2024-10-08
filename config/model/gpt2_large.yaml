@@ -6,7 +6,7 @@ block_name: GPT2Block
 use_flash_attention: false
 
 batch_size: 4
-eval_batch_size: 4
+eval_batch_size: 16
 
 
 # the maximum allowed length for an input (prompt + response)
