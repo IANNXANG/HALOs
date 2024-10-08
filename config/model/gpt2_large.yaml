@@ -14,7 +14,7 @@ max_length: 512
 # the maximum allowed length for a prompt
 max_prompt_length: 256
 
-gradient_accumulation_steps: 1
+gradient_accumulation_steps: 2
 
 
 policy_dtype: float32
