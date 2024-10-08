@@ -844,10 +844,11 @@ class KTOTrainer(UnpairedPreferenceTrainer):
         desirable and undesirable examples in the microbatch.
         """
         KL = (policy_KL_logps - reference_KL_logps).mean().detach()
-        # nn.all_reduce sums up the KL estimates across all devices (gradient will also be scaled by world size)
-        dist.nn.all_reduce(KL, op=dist.ReduceOp.SUM)
-        # take average (will also scale gradients appropriately)
-        KL = (KL / self.world_size).clamp(min=0)
+        if self.config.use_fsdp:
+            # nn.all_reduce sums up the KL estimates across all devices (gradient will also be scaled by world size)
+            dist.nn.all_reduce(KL, op=dist.ReduceOp.SUM)
+            # take average (will also scale gradients appropriately)
+            KL = (KL / self.world_size).clamp(min=0)
 
         if policy_chosen_logps.shape[0] != 0:
             chosen_logratios = (policy_chosen_logps - reference_chosen_logps)
