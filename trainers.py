@@ -955,7 +955,7 @@ class KTOTrainer(UnpairedPreferenceTrainer):
         metrics[f'rewards_{mode}/margins'] = [(all_rewards[chosen_rewards_idx].mean().nan_to_num(0) - all_rewards[rejected_rewards_idx].mean().nan_to_num(0)).item()]
         metrics[f'rewards_{mode}/KL_estimate'] = all_KL.float().cpu().numpy().tolist()  #为什么不是一个list
         #单卡时确保是一个list
-        if isinstance(metrics[f'rewards_{mode}/KL_estimate'], float):
+        if type(metrics[f'rewards_{mode}/KL_estimate']) == float:
             metrics[f'rewards_{mode}/KL_estimate'] = [metrics[f'rewards_{mode}/KL_estimate']]
         print("metrics[f'rewards_{mode}/KL_estimate']的数据类型是:",type(metrics[f'rewards_{mode}/KL_estimate']))
         metrics[f'loss/{mode}'] = all_devices_losses.float().cpu().numpy().tolist()
