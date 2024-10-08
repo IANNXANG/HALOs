@@ -364,6 +364,10 @@ class BasicTrainer(object):
                     with torch.no_grad():
                         _, eval_metrics = self.get_batch_metrics(local_eval_batch, mode='eval')
 
+                    # 调试打印每个键值对
+                    for key, value in eval_metrics.items():
+                        print(f'Key: {key}, Value: {value}')
+
                     for k, v in eval_metrics.items():
                         all_eval_metrics[k].extend(v)
 
