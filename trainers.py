@@ -954,6 +954,10 @@ class KTOTrainer(UnpairedPreferenceTrainer):
         metrics[f'rewards_{mode}/rejected'] = all_rewards[rejected_rewards_idx].float().cpu().numpy().tolist()
         metrics[f'rewards_{mode}/margins'] = [(all_rewards[chosen_rewards_idx].mean().nan_to_num(0) - all_rewards[rejected_rewards_idx].mean().nan_to_num(0)).item()]
         metrics[f'rewards_{mode}/KL_estimate'] = all_KL.float().cpu().numpy().tolist()
+        #确保是一个list
+        if type(metrics[f'rewards_{mode}/KL_estimate']) == float:
+            metrics[f'rewards_{mode}/KL_estimate'] = [metrics[f'rewards_{mode}/KL_estimate']]
+        metrics[f'logps_{mode}/rejected'] = all_rewards[rejected_rewards_idx].float().cpu().numpy().tolist()
         metrics[f'loss/{mode}'] = all_devices_losses.float().cpu().numpy().tolist()
 
         del policy_chosen_logps, policy_rejected_logps, policy_KL_logps, reference_chosen_logps, reference_rejected_logps, reference_KL_logps
